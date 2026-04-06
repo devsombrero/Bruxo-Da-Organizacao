@@ -4,18 +4,39 @@ import { EngineResult } from "../domain/engine.types";
 
 export class RunEngineUseCase {
 	execute(plan: Plan, tasks: Task[]): EngineResult {
-		// 1. filtrar tasks pendentes
-		const pendingTasks = tasks.filter((task) => task.status === "PENDENTE");
+		const now = new Date();
+		const WIP_LIMIT = 2;
 
-		// 2. ordenar por prioridade (maior primeiro)
-		const orderedTasks = pendingTasks.sort((a, b) => b.priority - a.priority);
+		const isPlanActive = plan.isActive(now);
+		const inProgressTasks = tasks.filter((t) => t.status === "FAZENDO");
+		const pendingTasks = tasks.filter((t) => t.status === "PENDENTE");
 
-		// 3. pegar próxima task
-		const nextTask = orderedTasks.length > 0 ? orderedTasks[0] : null;
+		// 1. Plan precisa estar ativo
+		if (!isPlanActive) {
+			return { orderedTasks: [], nextTask: null };
+		}
+
+		// 2. WIP limit
+		if (inProgressTasks.length >= WIP_LIMIT) {
+			return { orderedTasks: [], nextTask: null };
+		}
+
+		// 3. Priorizar tarefa em andamento
+		if (inProgressTasks.length === 1) {
+			return {
+				orderedTasks: [...inProgressTasks, ...pendingTasks],
+				nextTask: inProgressTasks[0],
+			};
+		}
+
+		// 4. Ordenar pendentes por prioridade
+		const orderedPending = [...pendingTasks].sort(
+			(a, b) => b.priority - a.priority,
+		);
 
 		return {
-			orderedTasks,
-			nextTask,
+			orderedTasks: orderedPending,
+			nextTask: orderedPending[0] || null,
 		};
 	}
 }
