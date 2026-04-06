@@ -3,3 +3,7 @@ export type CreateTaskInput = {
 	title: string;
 	priority?: number;
 };
+
+export type StartTaskInput = {
+	taskId: string;
+};

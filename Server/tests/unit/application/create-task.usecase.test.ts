@@ -2,14 +2,21 @@ import { CreateTaskUseCase } from "../../../modules/task/application/create-task
 import { Task } from "../../../modules/task/domain/task.entity";
 import { TaskRepository } from "../../../modules/task/domain/task.repository";
 
-describe('CreateTaskUseCase', () => {
-	it('must create and save a new task successfully', () => {
-		const mockRepository: TaskRepository = {
+describe("CreateTaskUseCase", () => {
+	let mockRepository: TaskRepository;
+	let useCase: CreateTaskUseCase;
+
+	beforeEach(() => {
+		mockRepository = {
 			save: jest.fn(),
+			findById: jest.fn(),
+			update: jest.fn(),
 		};
 
-		const useCase = new CreateTaskUseCase(mockRepository);
+		useCase = new CreateTaskUseCase(mockRepository);
+	});
 
+	it("must create and save a new task successfully", () => {
 		const result = useCase.execute({
 			planId: "plan-123",
 			title: "Aprender TDD",
@@ -24,11 +31,6 @@ describe('CreateTaskUseCase', () => {
 	});
 
 	it("must create a new task with default priority (0) when the priority is not informed", () => {
-		const mockRepository = {
-			save: jest.fn(),
-		};
-		const useCase = new CreateTaskUseCase(mockRepository);
-
 		const result = useCase.execute({
 			planId: "plan-123",
 			title: "Estudar Cobertura de Testes",
