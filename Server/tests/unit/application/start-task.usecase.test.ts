@@ -16,6 +16,7 @@ describe("StartTaskUseCase", () => {
 			save: jest.fn(),
 			findById: jest.fn().mockResolvedValue(existingTask),
 			update: jest.fn().mockResolvedValue(void 0),
+			findManyByPlanId: jest.fn(),
 		};
 
 		const useCase = new StartTaskUseCase(mockRepository);
@@ -32,6 +33,7 @@ describe("StartTaskUseCase", () => {
 			save: jest.fn(),
 			findById: jest.fn().mockResolvedValue(null),
 			update: jest.fn(),
+			findManyByPlanId: jest.fn(),
 		};
 
 		const useCase = new StartTaskUseCase(mockRepository);

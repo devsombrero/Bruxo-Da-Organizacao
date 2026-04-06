@@ -18,3 +18,8 @@ export type UpdateTaskStatusInput = {
 	taskId: string;
 	status: TaskStatus;
 };
+
+export type ReorderTasksInput = {
+	planId: string;
+	taskIdsInOrder: string[];
+};

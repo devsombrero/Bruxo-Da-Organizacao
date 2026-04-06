@@ -3,6 +3,7 @@ import { CreateTaskUseCase } from "../application/create-task.usecase";
 import { StartTaskUseCase } from "../application/start-task.usecase";
 import { FinishTaskUseCase } from "../application/finish-task.usecase";
 import { UpdateTaskStatusUseCase } from "../application/update-task-status.usecase";
+import { ReorderTasksUseCase } from "../application/reorder-task.usecase";
 
 export class TaskController {
 	constructor(
@@ -10,6 +11,7 @@ export class TaskController {
 		private readonly startTaskUseCase: StartTaskUseCase,
 		private readonly finishTaskUseCase: FinishTaskUseCase,
 		private readonly updateTaskStatusUseCase: UpdateTaskStatusUseCase,
+		private readonly reorderTasksUseCase: ReorderTasksUseCase,
 	) {}
 
 	async create(req: Request, res: Response): Promise<Response> {
@@ -93,6 +95,25 @@ export class TaskController {
 			if (error.message === "Task not found") {
 				return res.status(404).json({ error: error.message });
 			}
+			return res.status(500).json({ error: "Internal server error" });
+		}
+	}
+
+	async reorder(req: Request, res: Response): Promise<Response> {
+		try {
+			const { planId, taskIdsInOrder } = req.body;
+
+			if (!planId || !Array.isArray(taskIdsInOrder)) {
+				return res
+					.status(400)
+					.json({ error: "planId and taskIdsInOrder array are required" });
+			}
+
+			await this.reorderTasksUseCase.execute({ planId, taskIdsInOrder });
+
+			return res.status(204).send();
+		} catch (error: any) {
+			console.error("Error reordering tasks:", error);
 			return res.status(500).json({ error: "Internal server error" });
 		}
 	}

@@ -8,6 +8,7 @@ import { FinishTaskUseCase } from "../../../modules/task/application/finish-task
 import { setupRoutes } from "../../../apps/api/routes/routes";
 import request from "supertest";
 import { UpdateTaskStatusUseCase } from "../../../modules/task/application/update-task-status.usecase";
+import { ReorderTasksUseCase } from "../../../modules/task/application/reorder-task.usecase";
 
 describe("TaskController Integration Tests", () => {
 	let app: express.Express;
@@ -244,6 +245,71 @@ describe("TaskController Integration Tests", () => {
 			const response = await request(app)
 				.put("/api/v1/tasks/any-id/status")
 				.send({ status: "PENDENTE" });
+
+			expect(response.status).toBe(500);
+			expect(response.body).toEqual({ error: "Internal server error" });
+			expect(consoleSpy).toHaveBeenCalled();
+		});
+	});
+
+	describe("POST /api/v1/tasks/reorder", () => {
+		it("should reorder tasks and return 204 No Content", async () => {
+			
+			const task1Res = await request(app).post("/api/v1/tasks").send({
+				planId: "plan-reorder",
+				title: "Task 1",
+			});
+			const task2Res = await request(app).post("/api/v1/tasks").send({
+				planId: "plan-reorder",
+				title: "Task 2",
+			});
+
+			const response = await request(app)
+				.post("/api/v1/tasks/reorder")
+				.send({
+					planId: "plan-reorder",
+					taskIdsInOrder: [task2Res.body.id, task1Res.body.id],
+				});
+
+			expect(response.status).toBe(204);
+			expect(response.body).toEqual({});
+		});
+
+		it("should return 400 Bad Request if planId is missing", async () => {
+			const response = await request(app)
+				.post("/api/v1/tasks/reorder")
+				.send({ taskIdsInOrder: ["task-1"] });
+
+			expect(response.status).toBe(400);
+			expect(response.body.error).toBe(
+				"planId and taskIdsInOrder array are required",
+			);
+		});
+
+		it("should return 400 Bad Request if taskIdsInOrder is not an array", async () => {
+			const response = await request(app)
+				.post("/api/v1/tasks/reorder")
+				.send({ planId: "plan-123", taskIdsInOrder: "not-an-array" });
+
+			expect(response.status).toBe(400);
+			expect(response.body.error).toBe(
+				"planId and taskIdsInOrder array are required",
+			);
+		});
+
+		it("should return 500 Internal Server Error if an exception occurs", async () => {
+			const consoleSpy = jest
+				.spyOn(console, "error")
+				.mockImplementation(() => {});
+			jest
+				.spyOn(ReorderTasksUseCase.prototype, "execute")
+				.mockImplementation(() => {
+					throw new Error("Unexpected failure");
+				});
+
+			const response = await request(app)
+				.post("/api/v1/tasks/reorder")
+				.send({ planId: "plan-123", taskIdsInOrder: ["task-1"] });
 
 			expect(response.status).toBe(500);
 			expect(response.body).toEqual({ error: "Internal server error" });

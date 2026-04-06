@@ -11,6 +11,7 @@ describe("CreateTaskUseCase", () => {
 			save: jest.fn(),
 			findById: jest.fn(),
 			update: jest.fn(),
+			findManyByPlanId: jest.fn(),
 		};
 
 		useCase = new CreateTaskUseCase(mockRepository);

@@ -70,4 +70,24 @@ export class SqliteTaskRepository implements TaskRepository {
 			);
 		});
 	}
+
+	findManyByPlanId(planId: string): Promise<Task[]> {
+		return new Promise((resolve, reject) => {
+			const sql = `SELECT * FROM tasks WHERE planId = ? ORDER BY priority ASC`;
+
+			this.db.all(sql, [planId], (err, rows: any[]) => {
+				if (err) {
+					console.error("Erro ao buscar tarefas do plano:", err.message);
+					return reject(err);
+				}
+
+				const tasks = rows.map(
+					(row) =>
+						new Task(row.id, row.planId, row.title, row.status, row.priority),
+				);
+
+				resolve(tasks);
+			});
+		});
+	}
 }

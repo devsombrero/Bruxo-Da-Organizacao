@@ -188,4 +188,90 @@ describe("SqliteTaskRepository", () => {
 			expect(consoleSpy).toHaveBeenCalled();
 		});
 	});
+
+	describe("findManyByPlanId", () => {
+		it("should return an array of tasks ordered by priority ascending", async () => {
+			const planId = "plan-order-123";
+			const task1 = new Task("t-1", planId, "T1", "PENDENTE", 5);
+			const task2 = new Task("t-2", planId, "T2", "PENDENTE", 1);
+			const task3 = new Task("t-3", planId, "T3", "PENDENTE", 3);
+			const taskOtherPlan = new Task(
+				"t-other",
+				"other-plan",
+				"Other",
+				"PENDENTE",
+				0,
+			);
+
+			await new Promise<void>((resolve) => {
+				const insert =
+					"INSERT INTO tasks (id, planId, title, status, priority) VALUES (?, ?, ?, ?, ?)";
+				db.serialize(() => {
+					db.run(insert, [
+						task1.id,
+						task1.planId,
+						task1.title,
+						task1.status,
+						task1.priority,
+					]);
+					db.run(insert, [
+						task2.id,
+						task2.planId,
+						task2.title,
+						task2.status,
+						task2.priority,
+					]);
+					db.run(insert, [
+						task3.id,
+						task3.planId,
+						task3.title,
+						task3.status,
+						task3.priority,
+					]);
+					db.run(
+						insert,
+						[
+							taskOtherPlan.id,
+							taskOtherPlan.planId,
+							taskOtherPlan.title,
+							taskOtherPlan.status,
+							taskOtherPlan.priority,
+						],
+						() => resolve(),
+					);
+				});
+			});
+
+			const results = await repository.findManyByPlanId(planId);
+
+			expect(results).toHaveLength(3);
+			expect(results[0].id).toBe("t-2");
+			expect(results[1].id).toBe("t-3");
+			expect(results[2].id).toBe("t-1");
+			expect(results[0]).toBeInstanceOf(Task);
+		});
+
+		it("should return an empty array if no tasks are found for the planId", async () => {
+			const results = await repository.findManyByPlanId("empty-plan");
+			expect(results).toEqual([]);
+		});
+
+		it("should log and reject if there is a database error during findManyByPlanId", async () => {
+			const consoleSpy = jest
+				.spyOn(console, "error")
+				.mockImplementation(() => {});
+
+			jest
+				.spyOn(db, "all")
+				.mockImplementationOnce((query, params, callback: any) => {
+					callback(new Error("Fake DB findMany Error"));
+					return db;
+				});
+
+			await expect(repository.findManyByPlanId("error-plan")).rejects.toThrow(
+				"Fake DB findMany Error",
+			);
+			expect(consoleSpy).toHaveBeenCalled();
+		});
+	});
 });
