@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS tasks (
+  id TEXT PRIMARY KEY,
+  planId TEXT NOT NULL,
+  title TEXT NOT NULL,
+  status TEXT NOT NULL,
+  priority INTEGER DEFAULT 0
+);
