@@ -4,18 +4,27 @@ import { SqliteTaskRepository } from "../../../modules/task/adapters/sqlite-task
 import { CreateTaskUseCase } from "../../../modules/task/application/create-task.usecase";
 import { TaskController } from "../../../modules/task/adapters/task.controller";
 import { StartTaskUseCase } from "../../../modules/task/application/start-task.usecase";
+import { FinishTaskUseCase } from "../../../modules/task/application/finish-task.usecase";
 
 export function setupRoutes(app: Express, db: sqlite3.Database) {
 	// 1. Dependency Injection (Wiring layers)
 	const taskRepository = new SqliteTaskRepository(db);
 	const createTaskUseCase = new CreateTaskUseCase(taskRepository);
 	const startTaskUseCase = new StartTaskUseCase(taskRepository);
-	const taskController = new TaskController(createTaskUseCase, startTaskUseCase);
+	const finishTaskUseCase = new FinishTaskUseCase(taskRepository);
+
+	const taskController = new TaskController(
+		createTaskUseCase, startTaskUseCase, finishTaskUseCase
+	);
 
 	// 2. Routes
 	app.post("/api/v1/tasks", taskController.create.bind(taskController));
 	app.patch(
 		"/api/v1/tasks/:id/start",
 		taskController.start.bind(taskController),
+	);
+	app.patch(
+		"/api/v1/tasks/:id/finish",
+		taskController.finish.bind(taskController),
 	);
 }

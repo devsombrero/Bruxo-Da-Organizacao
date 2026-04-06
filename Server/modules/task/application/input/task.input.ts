@@ -7,3 +7,7 @@ export type CreateTaskInput = {
 export type StartTaskInput = {
 	taskId: string;
 };
+
+export type FinishTaskInput = {
+	taskId: string;
+};
