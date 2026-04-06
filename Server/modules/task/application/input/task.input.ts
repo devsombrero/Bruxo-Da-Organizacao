@@ -1,3 +1,5 @@
+import { TaskStatus } from "../../domain/task.types";
+
 export type CreateTaskInput = {
 	planId: string;
 	title: string;
@@ -10,4 +12,9 @@ export type StartTaskInput = {
 
 export type FinishTaskInput = {
 	taskId: string;
+};
+
+export type UpdateTaskStatusInput = {
+	taskId: string;
+	status: TaskStatus;
 };

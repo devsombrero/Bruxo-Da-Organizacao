@@ -7,6 +7,7 @@ import { StartTaskUseCase } from "../../../modules/task/application/start-task.u
 import { FinishTaskUseCase } from "../../../modules/task/application/finish-task.usecase";
 import { setupRoutes } from "../../../apps/api/routes/routes";
 import request from "supertest";
+import { UpdateTaskStatusUseCase } from "../../../modules/task/application/update-task-status.usecase";
 
 describe("TaskController Integration Tests", () => {
 	let app: express.Express;
@@ -185,6 +186,64 @@ describe("TaskController Integration Tests", () => {
 				});
 
 			const response = await request(app).patch("/api/v1/tasks/any-id/finish");
+
+			expect(response.status).toBe(500);
+			expect(response.body).toEqual({ error: "Internal server error" });
+			expect(consoleSpy).toHaveBeenCalled();
+		});
+	});
+
+	describe("PUT /api/v1/tasks/:id/status", () => {
+		it("should update task status and return 200 OK", async () => {
+			const createRes = await request(app).post("/api/v1/tasks").send({
+				planId: "plan-status",
+				title: "Status update test",
+			});
+			const taskId = createRes.body.id;
+
+			const response = await request(app)
+				.put(`/api/v1/tasks/${taskId}/status`)
+				.send({ status: "FEITO" });
+
+			expect(response.status).toBe(200);
+			expect(response.body.status).toBe("FEITO");
+		});
+
+		it("should return 400 if status is missing", async () => {
+			const response = await request(app)
+				.put("/api/v1/tasks/any-id/status")
+				.send({});
+
+			expect(response.status).toBe(400);
+			expect(response.body.error).toBe("Status is required");
+		});
+
+		it("should return 404 Not Found if task does not exist", async () => {
+			const consoleSpy = jest
+				.spyOn(console, "error")
+				.mockImplementation(() => {});
+
+			const response = await request(app)
+				.put("/api/v1/tasks/non-existent-id/status")
+				.send({ status: "FAZENDO" });
+
+			expect(response.status).toBe(404);
+			expect(response.body).toEqual({ error: "Task not found" });
+		});
+
+		it("should return 500 Internal Server Error if an exception occurs", async () => {
+			const consoleSpy = jest
+				.spyOn(console, "error")
+				.mockImplementation(() => {});
+			jest
+				.spyOn(UpdateTaskStatusUseCase.prototype, "execute")
+				.mockImplementation(() => {
+					throw new Error("Unexpected failure");
+				});
+
+			const response = await request(app)
+				.put("/api/v1/tasks/any-id/status")
+				.send({ status: "PENDENTE" });
 
 			expect(response.status).toBe(500);
 			expect(response.body).toEqual({ error: "Internal server error" });

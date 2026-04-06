@@ -2,12 +2,14 @@ import { Request, Response } from "express";
 import { CreateTaskUseCase } from "../application/create-task.usecase";
 import { StartTaskUseCase } from "../application/start-task.usecase";
 import { FinishTaskUseCase } from "../application/finish-task.usecase";
+import { UpdateTaskStatusUseCase } from "../application/update-task-status.usecase";
 
 export class TaskController {
 	constructor(
 		private readonly createTaskUseCase: CreateTaskUseCase,
 		private readonly startTaskUseCase: StartTaskUseCase,
 		private readonly finishTaskUseCase: FinishTaskUseCase,
+		private readonly updateTaskStatusUseCase: UpdateTaskStatusUseCase,
 	) {}
 
 	async create(req: Request, res: Response): Promise<Response> {
@@ -67,6 +69,30 @@ export class TaskController {
 				return res.status(404).json({ error: error.message });
 			}
 
+			return res.status(500).json({ error: "Internal server error" });
+		}
+	}
+
+	async updateStatus(req: Request, res: Response): Promise<Response> {
+		try {
+			const { id } = req.params;
+			const { status } = req.body;
+
+			if (!status) {
+				return res.status(400).json({ error: "Status is required" });
+			}
+
+			const task = await this.updateTaskStatusUseCase.execute({
+				taskId: id as string,
+				status,
+			});
+
+			return res.status(200).json(task);
+		} catch (error: any) {
+			console.error("Error updating task status:", error);
+			if (error.message === "Task not found") {
+				return res.status(404).json({ error: error.message });
+			}
 			return res.status(500).json({ error: "Internal server error" });
 		}
 	}
