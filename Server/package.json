@@ -1,8 +1,8 @@
 {
-	"name": "Bruxo-Da-Organizacao-Server",
+	"name": "bruxo-da-organizacao-server",
 	"version": "1.0.0",
 	"description": "Server Principal da Aplicação",
-	"main": "index.js",
+	"main": "apps/api/main.ts",
 	"scripts": {
 		"dev": "ts-node ./src/index.ts",
 		"build": "tsc",
@@ -17,16 +17,20 @@
 	"license": "MIT",
 	"type": "commonjs",
 	"dependencies": {
-		"@types/cors": "^2.8.19",
-		"@types/express": "^5.0.6",
-		"@types/node": "^25.5.2",
-		"@types/sqlite3": "^3.1.11",
 		"cors": "^2.8.6",
 		"express": "^5.2.1",
-		"sqlite3": "^6.0.1",
-		"typescript": "^6.0.2"
+		"sqlite3": "^6.0.1"
 	},
 	"devDependencies": {
-		"ts-node": "^10.9.2"
+		"@types/cors": "^2.8.19",
+		"@types/express": "^5.0.6",
+		"@types/jest": "^30.0.0",
+		"@types/node": "^25.5.2",
+		"@types/sqlite3": "^3.1.11",
+		"jest": "^30.3.0",
+		"supertest": "^7.2.2",
+		"ts-jest": "^29.4.9",
+		"ts-node": "^10.9.2",
+		"typescript": "^6.0.2"
 	}
 }
