@@ -14,6 +14,10 @@ jobs:
       matrix:
         node-version: [18, 20]
 
+    defaults:
+      run:
+        working-directory: ./Server
+
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
@@ -23,6 +27,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
+          cache-dependency-path: Server/package-lock.json
 
       - name: Instalar dependências
         run: npm install
